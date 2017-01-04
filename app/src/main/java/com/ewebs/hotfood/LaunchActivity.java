@@ -10,6 +10,9 @@ public class LaunchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
-        startActivity(new Intent(this,MainActivity.class));
+
+        startActivity(new Intent(LaunchActivity.this, MainActivity.class));
+        finish();
+
     }
 }
