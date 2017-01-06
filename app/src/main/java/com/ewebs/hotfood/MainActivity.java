@@ -1,10 +1,14 @@
 package com.ewebs.hotfood;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -18,11 +22,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.ewebs.hotfood.adapter.MainPageAdapter;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -39,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
      * may be best to switch to a
      * {@link FragmentStatePagerAdapter}.
      */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private MainPageAdapter mSectionsPagerAdapter;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -57,7 +69,8 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setLogo(getDrawable(R.mipmap.ic_launcher));
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
+        mSectionsPagerAdapter = new MainPageAdapter(getSupportFragmentManager());
 
         /** Set up Tabs*/
         mTabs.addTab(mTabs.newTab().setIcon(getDrawable(R.drawable.ic_map)));
@@ -144,47 +157,77 @@ public class MainActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+//            if(getArguments().getInt(ARG_SECTION_NUMBER) == 4) {
+//                Button btn = (Button) rootView.findViewById(R.id.QR_btn);
+//                btn.setVisibility(View.VISIBLE);
+//                btn.setOnClickListener(new Button.OnClickListener(){
+//                    @Override
+//                    public void onClick(View v) {
+//                        // TODO Auto-generated method stub
+//                        Intent intent = new Intent();
+//                        intent.setClass(getActivity(),SimpleScannerActivity.class);
+//                        startActivity(intent);
+//                    }
+//                });
+//            }
             return rootView;
         }
 
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    public static class Map extends Fragment {
+        MapView mapView;
+        GoogleMap map;
 
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            View v = inflater.inflate(R.layout.fragment_map, container, false);
+
+            // Gets the MapView from the XML layout and creates it
+            mapView = (MapView) v.findViewById(R.id.mapview);
+            mapView.onCreate(savedInstanceState);
+
+            // Gets to GoogleMap from the MapView and does initialization stuff
+            mapView.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(GoogleMap googleMap) {
+
+                    googleMap.addMarker(new MarkerOptions().position(new LatLng(25.05, 121.53)));
+
+                    /** Updates the location and zoom of the MapView */
+                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(25.053127, 121.523543), 14);
+                    googleMap.animateCamera(cameraUpdate);
+                }
+            });
+            //map.getUiSettings().setMyLocationButtonEnabled(false);
+            //map.setMyLocationEnabled(true);
+
+            // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
+            MapsInitializer.initialize(this.getActivity());
+
+
+            return v;
         }
 
         @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+        public void onResume() {
+            mapView.onResume();
+            super.onResume();
         }
 
         @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 4;
+        public void onDestroy() {
+            super.onDestroy();
+            mapView.onDestroy();
         }
 
         @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Map";
-                case 1:
-                    return "Hot";
-                case 2:
-                    return "Like";
-                case 3:
-                    return "Search";
-            }
-            return null;
+        public void onLowMemory() {
+            super.onLowMemory();
+            mapView.onLowMemory();
         }
+
     }
+
 }

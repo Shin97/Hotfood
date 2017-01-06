@@ -21,4 +21,5 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="google_maps_key">AIzaSyA18d5dS61xEXTRFvZRZ0nl8TkMAg4Jpr8</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
